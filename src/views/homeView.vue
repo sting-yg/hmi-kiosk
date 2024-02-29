@@ -19,20 +19,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { useKioskStore } from '../stores/KioskStore';
 
 export default defineComponent({
-    setup() {
-    const store = useKioskStore() // 使用 Pinia store
-        return {
-        store // 返回 store
-        }
-    },
-    data: () => ({
     
+    data: () => ({    
         currentDateFormat: "",
-        monitoringTimer : null as number | null,
-        selectedCodeName: null as string | string[] | null,        
+        monitoringTimer : null as number | null,       
     }),
     methods: {
         updateCurrentTime() {

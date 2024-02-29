@@ -1,12 +1,14 @@
 <template>
     <v-container fluid class="h-100 w-100 ma-0 pa-0 bg-blue-grey-lighten-4">      
         <v-row no-gutters class="py-5 px-0 ma-0 bg-blue-grey-lighten-4 d-flex justify-space-around align-center" style="height: 20%;">           
-            <span class="label" style="width: 75%; height: 90%; border-radius: 5px;">{{ selectedRowData? selectedRowData.codeName : selectedCodeName || '변경할 라인/공정을 선택하세요 !'}}</span>          
+            <!-- <span class="label" style="width: 75%; height: 90%; border-radius: 5px;">{{ selectedRowData? selectedRowData.codeName : selectedCodeName || '변경할 라인/공정을 선택하세요 !'}}</span>   -->
+            <span class="label" style="width: 75%; height: 90%; border-radius: 5px;">{{ lineStation? lineStation : '변경할 라인/공정 선택 하세요!' }}</span>            
             <v-btn style="width: 20%; height: 90%; font-size: 6vh; border-radius: 5px;" elevation="24" color="primary" @click="goToMaterialRequest()">확인</v-btn> 
-        </v-row>        
+        </v-row>    
+            
         <v-row no-gutters class="h-80 pa-5 pt-0 ma-0 bg-blue-grey-lighten-4">  
-            <v-card class="h-100 w-100 pa-5 pb-0 ma-0">                    
-                <v-table fixed-header  style="height: 60vh;" id="custom-scrollbar">                  
+            <v-card class="h-100 w-100 pa-0 ma-0">                    
+                <v-table fixed-header  style="height: 69.5vh;">                  
                     <thead>
                         <tr >
                             <th class="text-center">No.</th>
@@ -14,7 +16,8 @@
                         </tr>
                     </thead>                           
                     <tbody >
-                        <tr v-for="(item, index) in data" :key="index" :class="{ 'selected-row': data[index] === selectedRowData, 'hovered-row': index === hoveredRowIndex }" @click="selectRow(data[index])" @mouseover="setHoveredRow(index)" @mouseleave="clearHoveredRow">
+                        <!-- <tr v-for="(item, index) in data" :key="index" :class="{ 'selected-row': data[index] === selectedRowData, 'hovered-row': index === hoveredRowIndex }" @click="selectRow(data[index])" @mouseover="setHoveredRow(index)" @mouseleave="clearHoveredRow"> -->
+                        <tr v-for="(item, index) in data" :key="index" :class="{ 'selected-row': data[index] === selectedRowData,}" @click="selectRow(data[index])">
                             <td class="text-center">{{ data[index].codeNo }}</td>
                             <td class="text-center">{{ data[index].codeName }}</td>
                         </tr>
@@ -23,37 +26,34 @@
             </v-card> 
         </v-row>  
     </v-container>
-    <v-dialog width="800" height="500" v-model="dialogVisible">    
-        <v-card class="h-100 w-100 pa-0 ma-0" rounded="xl">
-            <v-card-title  style="height: 30%; background-color: #FF6D00;" class="pa-0 ma-0 d-flex justify-center align-center">
-                <v-icon class="" size="80" color="white" icon="mdi-alert-outline"></v-icon>
-                <span style="color: white; font-size: 8vh; font-weight: bold;">WARNING</span>
-            </v-card-title>
-            <v-card-text class="pa-0 ma-0 d-flex justify-center align-center" style="height: 40%; color: #FF6D00; font-size: 7vh;">
-                라인/공정 선택하세요!
-            </v-card-text>
-            <v-card-actions class="pa-0 ma-0 d-flex justify-center align-center" style="height: 30%;">
-                <v-btn rounded variant="outlined" style="height: 70%; width: 30%; color:#FF6D00 ; font-size: 4vh; font-weight: bold;" text="Close" @click="dialogVisible = false"></v-btn>
-            </v-card-actions>
-        </v-card>   
-    </v-dialog>
+    <template>
+        <customDialog 
+        v-if="dialogVisible"
+        v-model:dialog-visible="dialogVisible"
+                :dialog-title="dialogTitle" 
+                :dialog-message="dialogMessage" 
+                :dialog-icon="dialogIcon" 
+                :dialog-color="dialogColor"
+        @close="handleCloseDialog"/>
+    </template>
+      
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { useKioskStore } from '../../stores/KioskStore'
+import customDialog from '../dialog/customDialog.vue'
 
 export default defineComponent({
-    setup() {
-    const store = useKioskStore() 
 
-    return {
-      selectedCodeName: store.selectedCodeName
-    }
-  },
+    components:{
+        customDialog,
+    },
     data: () => ({
-        isActive: false,
+        lineStation: localStorage.getItem("lineStation"),
         dialogVisible: false,
-        hoveredRowIndex: -1, 
+        dialogTitle: "", // success warning alarm
+        dialogMessage: "", 
+        dialogIcon: "",  // success : mdi-check-circle-outline ; warning: mdi-alert-outline
+        dialogColor: "", // success : #339900 ; warning: #FF6D00
         selectedRowData: null as { codeNo: string, codeName: string } | null,
         currentDateFormat: "",
         monitoringTimer : null as number | null,
@@ -72,9 +72,14 @@ export default defineComponent({
             { codeNo: '6', codeName: '6라인6공정'},
             { codeNo: '7', codeName: '7라인5공정'},
             { codeNo: '8', codeName: '8라인6공정'},
-        ],
+        ], 
     }),
+    computed:{
+    },
     methods: {
+        handleCloseDialog() {
+            this.dialogVisible = false;
+        },
         updateCurrentTime() {
             const today = new Date();
             const year = today.getFullYear();
@@ -89,26 +94,23 @@ export default defineComponent({
         },
         selectRow(rowData: { codeNo: string, codeName: string }) {
             this.selectedRowData = rowData;
-            this.selectedCodeName = this.selectedRowData.codeName
-        },
-        setHoveredRow(index: number) {
-            this.hoveredRowIndex = index; 
-        },
-        clearHoveredRow() {
-            this.hoveredRowIndex = -1; 
+            this.lineStation = this.selectedRowData.codeName
+            //set lineStation
+            localStorage.setItem("lineStation", this.selectedRowData.codeName);
         },
         goToMaterialRequest() {
-            console.log("222")
-            useKioskStore().setSelectedCodeName(this.selectedCodeName)
-            if (this.selectedRowData !== null || (this.selectedCodeName !== null && this.selectedCodeName.trim().length != 0)) {
+            console.log(this.lineStation)
+            if (this.lineStation != null) {
                 this.$router.push({
                     path: '/materialRequest',
-                    query: {
-                        selectedCodeName: this.selectedCodeName
-                    }
                 });
             } else {
-                this.dialogVisible = true;
+                this.dialogTitle = 'WARNING'
+                this.dialogMessage = '라인/공정 선택 하세요!'
+                this.dialogIcon = 'mdi-alert-outline'
+                this.dialogColor = '#FF6D00'
+                this.dialogVisible = true
+                console.log(this.lineStation)
             }
         }
     },
@@ -116,6 +118,10 @@ export default defineComponent({
         this.monitoringTimer = setInterval(() =>{
             this.updateCurrentTime();
         }, 1000);
+
+        // get lineStation
+        // this.lineStation = localStorage.getItem("lineStation");
+        
     },
     beforeUnmount() {
         if(this.monitoringTimer) {

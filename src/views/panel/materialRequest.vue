@@ -2,7 +2,7 @@
     <v-container fluid class="h-100 w-100 pa-0 ma-0 bg-blue-grey-lighten-4">           
         <v-row no-gutters class="pa-5 pb-0 ma-0" style="height: 70%;">         
             <v-col cols="12" class="">
-                <span class="label" style="font-size: 20vh;">{{ $route.query.selectedCodeName }}</span>
+                <span class="label" style="font-size: 20vh;">{{ lineStation }}</span>
             </v-col>     
         </v-row>
         <v-row no-gutters class="pa-5 pt-0 ma-0" style="height: 30%;">        
@@ -16,33 +16,51 @@
             </v-col>      
         </v-row>    
     </v-container>
-    <v-dialog width="800" height="500" v-model="dialogVisible">       
-        <v-card class="h-100 w-100 pa-0 ma-0 bg-white" rounded="xl">
-            <v-card-title style="height: 30%; background-color: #339900;" class="d-flex justify-center align-center" >
-                <v-icon class="" size="80" color="white" icon="mdi-check-circle-outline"></v-icon>
-                <span style="color: white; font-size: 8vh;font-weight: bold;">SUCCESS</span>
-            </v-card-title>
-            <v-card-text class="pa-0 ma-0 d-flex justify-center align-center" style="height: 40%; color: #339900; font-size: 7vh;">
-                {{ dialogMessage }}
-            </v-card-text>
-            <v-card-actions class="pa-0 ma-0 d-flex justify-center align-center" style="height: 30%;">
-                <v-btn rounded variant="outlined" style="height: 70%; width: 30%; color: #339900; font-size: 4vh; font-weight: bold;" text="Close" @click="dialogVisible = false"></v-btn>
-            </v-card-actions>
-        </v-card>           
-    </v-dialog> 
-</template>              
+    <template>
+        <customDialog 
+        v-if="dialogVisible"
+        v-model:dialog-visible="dialogVisible" 
+                :dialog-title="dialogTitle" 
+                :dialog-message="dialogMessage" 
+                :dialog-icon="dialogIcon" 
+                :dialog-color="dialogColor"  
+                @close="handleCloseDialog"/>
+    </template>
+</template>  
+
 <script lang="ts">
+
 import { defineComponent } from 'vue'
+import customDialog from '../dialog/customDialog.vue';
+
 export default defineComponent({
 
-    data: () => ({
+    components:{
+        customDialog
+    },
+
+    data: () => ({  
+        lineStation: localStorage.getItem("lineStation"),
         dialogVisible: false,
-        dialogMessage: "",      
+        dialogTitle: "", // success warning alarm
+        dialogMessage: "", 
+        dialogIcon: "",  // success : mdi-check-circle-outline ; warning: mdi-alert-outline
+        dialogColor: "", // success : #339900 ; warning: #FF6D00
         currentDateFormat: "",
         monitoringTimer : null as number | null,
         selectedCodeName: null as string | string[] | null,        
     }),
+
+    computed: {
+
+    },
+
     methods: {
+
+        handleCloseDialog() {
+            this.dialogVisible = false;
+        },
+
         updateCurrentTime() {
             const today = new Date();
             const year = today.getFullYear();
@@ -55,30 +73,48 @@ export default defineComponent({
             var _time = hours + ':' + minutes  + ':' + seconds;
             this.currentDateFormat = _date + " " + _time;
         },
+
         submitRequest(command: string){
-            switch(command){
-                case '공급':
-                    this.dialogMessage = '공급 요청!'
-                    this.dialogVisible = true       
-                break;
-                case '회수':
-                    this.dialogMessage = '회수 요청!'
-                    this.dialogVisible = true
-                break;
+            if(this.lineStation != null){
+                switch(command){
+                    case '공급':
+                        this.dialogTitle = 'SUCCESS'
+                        this.dialogMessage = '공급 요청!'  
+                        this.dialogIcon = 'mdi-check-circle-outline'
+                        this.dialogColor = '#339900'                      
+                        this.dialogVisible = true       
+                    break;
+                    case '회수':
+                        this.dialogTitle = 'SUCCESS'
+                        this.dialogMessage = '회수 요청!'    
+                        this.dialogIcon = 'mdi-check-circle-outline'
+                        this.dialogColor = '#339900'
+                        this.dialogVisible = true
+                    break;
+                }
+            }else{
+                this.dialogTitle = 'WARNING'
+                this.dialogMessage = '라인/공정 선택 하세요!'
+                this.dialogIcon = 'mdi-alert-outline'
+                this.dialogColor = '#FF6D00'
+                this.dialogVisible = true
             }
         }
     },
+
     mounted() {
         this.monitoringTimer = setInterval(() =>{
             this.updateCurrentTime();
         }, 1000);     
     },
+
     beforeUnmount() {
         if(this.monitoringTimer) {
             clearInterval(this.monitoringTimer);
         }
     },
 })
+
 </script>
 <style scoped>
 @import "../../../public/assets/scss/commonHmi.scss";

@@ -1,8 +1,8 @@
 <template>
     <v-container fluid class="h-100 w-100 pa-0 ma-0"> 
         <v-row class="h-100 w-100 pa-5 ma-0 bg-blue-grey-lighten-4">
-            <v-card class="h-100 w-100 pa-5">
-                <v-table fixed-header class="" style="height: 74vh;">
+            <v-card class="h-100 w-100 pa-0 ma-0">
+                <v-table fixed-header style="height: 85.1vh;" id="custom-scrollbar">
                     <thead>
                         <tr>
                             <th class="text-center">No.</th>
@@ -92,6 +92,10 @@
 </script>
 <style scoped>
 @import "../../../public/assets/scss/commonHmi.scss";
+#virtual-scroll-table {
+  max-height: 400px;
+  overflow: auto;
+}
 th {
 font-size: 5vh;
 font-weight: bold;
@@ -105,16 +109,5 @@ font-weight: bold;
 .v-table--density-default{
     --v-table-header-height: 10vh;
     --v-table-row-height: 10vh;
-}
-.lable {
-display: flex;
-justify-content: center;
-align-items: center;
-text-align: center;
-font-size: 50px;
-color: white;
-background-color: blue;
-width: 100%;
-height: 100%;
 }
 </style>
